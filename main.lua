@@ -66,8 +66,8 @@ getgenv().firetouchinterest = function(Transmitter)
 	task.spawn(function()
 		task.wait()
 
-		Part.CanCollide = OldCollision
 		Part.CFrame = Old
+		Part.CanCollide = OldCollision
 		for Weld, Enabled in Welds do
 			Weld.Enabled = Enabled
 		end
