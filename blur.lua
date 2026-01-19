@@ -6,11 +6,9 @@ local PART_SIZE         = 0.01
 local PART_TRANSPARENCY = 1 - 1e-7
 local START_INTENSITY	= 0.25
 
-script.Parent:SetAttribute("BlurIntensity", START_INTENSITY)
-
 local BLUR_OBJ          = Instance.new("DepthOfFieldEffect")
 BLUR_OBJ.FarIntensity   = 0
-BLUR_OBJ.NearIntensity  = script.Parent:GetAttribute("BlurIntensity")
+BLUR_OBJ.NearIntensity  = START_INTENSITY
 BLUR_OBJ.FocusDistance  = 0.25
 BLUR_OBJ.InFocusRadius  = 0
 BLUR_OBJ.Parent         = Lighting
@@ -135,7 +133,7 @@ function updateGui(blurObj)
 end
 
 function BlurredGui.updateAll()
-	BLUR_OBJ.NearIntensity = tonumber(script.Parent:GetAttribute("BlurIntensity"))
+	BLUR_OBJ.NearIntensity = START_INTENSITY
 	
 	for i = 1, #BlursList do
 		updateGui(BlursList[i])
