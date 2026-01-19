@@ -18,6 +18,8 @@ getgenv().fireclickdetector = function(CD)
 
 	local Old = Part.CFrame
 	local OldDistance = CD.MaxActivationDistance
+	local OldT = Part.Transparency
+	Part.Transparency = 1
 	Part.CFrame = Camera.CFrame * CFrame.new(0, 0, -1)
 	CD.MaxActivationDistance = math.huge
 
@@ -32,6 +34,7 @@ getgenv().fireclickdetector = function(CD)
 
 		task.wait()
 
+		Part.Transparency = OldT
 		Part.CFrame = Old
 		CD.MaxActivationDistance = OldDistance
 		for Weld, Enabled in Welds do
