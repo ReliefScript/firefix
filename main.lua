@@ -50,11 +50,16 @@ getgenv().firetouchinterest = function(Transmitter)
 	local Char = LocalPlayer.Character
 	if not Char then return end
 
+	local Collision = {}
 	local Welds = {}
-	for _, Weld in Part:GetChildren() do
-		if Weld:IsA("Weld") then
-			Welds[Weld] = Weld.Enabled
-			Weld.Enabled = false
+	for _, Inst in Part:GetChildren() do
+		if Inst:IsA("Weld") then
+			Welds[Inst] = Inst.Enabled
+			Inst.Enabled = false
+		end
+		if Inst:IsA("BasePart") then
+			Collision[Inst] = Inst.CanCollide
+			Inst.CanCollide = false
 		end
 	end
 
@@ -68,8 +73,13 @@ getgenv().firetouchinterest = function(Transmitter)
 
 		Part.CFrame = Old
 		Part.CanCollide = OldCollision
-		for Weld, Enabled in Welds do
-			Weld.Enabled = Enabled
+		for Inst, Enabled in Welds do
+			if Inst:IsA("Weld") then
+				Inst.Enabled = false
+			end
+			if Inst:IsA("BasePart") then
+				Inst.CanCollide = false
+			end
 		end
 	end)
 end
