@@ -166,3 +166,5 @@ end
 game:GetService("RunService"):BindToRenderStep("BlurredGuiUpdate", Enum.RenderPriority.Camera.Value + 1, function()
 	BlurredGui.updateAll()
 end)
+
+return BlurredGui
