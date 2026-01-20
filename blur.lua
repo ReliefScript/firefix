@@ -1,3 +1,4 @@
+local RunService 		= game:GetService("RunService")
 local Lighting          = game:GetService("Lighting")
 local camera			= workspace.CurrentCamera
 
@@ -84,11 +85,6 @@ function BlurredGui.new(frame, shape)
 
 	BlurObjects[new] = blurPart
 	rebuildPartsList()
-
-	game:GetService("RunService"):BindToRenderStep("...", Enum.RenderPriority.Camera.Value + 1, function()
-		blurPart.CFrame = camera.CFrame * CFrame.new(0,0,0)
-		BlurredGui.updateAll()
-	end)
 	return new
 end
 
@@ -139,18 +135,31 @@ function BlurredGui.updateAll()
 		updateGui(BlursList[i])
 	end
 
-	local cframes = table.create(#BlursList, workspace.CurrentCamera.CFrame)
-	workspace:BulkMoveTo(PartsList, cframes, Enum.BulkMoveMode.FireCFrameChanged)
+	if #PartsList > 0 then
+		local camCF = workspace.CurrentCamera.CFrame
+		local cframes = table.create(#PartsList, camCF)
+		workspace:BulkMoveTo(PartsList, cframes, Enum.BulkMoveMode.FireCFrameChanged)
+	end
 
 	BLUR_OBJ.FocusDistance = 0.25 - camera.NearPlaneZ
 end
 
 function BlurredGui:Destroy()
-	self.Part:Destroy()
+	if self.Part then
+		self.Part:Destroy()
+	end
+
 	BlurObjects[self] = nil
 	rebuildPartsList()
 end
 
-BlurredGui.updateAll()
+RunService:BindToRenderStep(
+	"BlurredGuiUpdate",
+	Enum.RenderPriority.Camera.Value + 1,
+	function()
+		if #PartsList == 0 then return end
+		BlurredGui.updateAll()
+	end
+)
 
 return BlurredGui
