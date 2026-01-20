@@ -1,4 +1,4 @@
--- recoded cuz it was buns
+-- recoded cuz it was buns (x2)
 
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
@@ -7,14 +7,15 @@ local GuiService = game:GetService("GuiService")
 local Camera = workspace.CurrentCamera
 
 local PART_THICKNESS = 0.01
-local BLUR_MARGIN = Vector2.zero
-local START_INTENSITY = 0.25
+local PART_TRANSPARENCY = 1 - 1e-7
+local BLUR_PADDING = Vector2.zero
+local BLUR_INTENSITY = 0.25
+local PLANE_OFFSET = 0.05
 
 local DoF = Instance.new("DepthOfFieldEffect")
-DoF.NearIntensity = START_INTENSITY
-DoF.FarIntensity = 0
+DoF.NearIntensity = 0
+DoF.FarIntensity = BLUR_INTENSITY
 DoF.InFocusRadius = 0
-DoF.FocusDistance = 0
 DoF.Parent = Lighting
 
 local Objects = {}
@@ -23,24 +24,25 @@ local Parts = {}
 local Library = {}
 Library.__index = Library
 
-local function intersectPlane(rayOrigin, rayDir, planePos, planeNormal)
+local function rayPlaneIntersect(planePos, planeNormal, rayOrigin, rayDir)
 	local denom = planeNormal:Dot(rayDir)
 	if math.abs(denom) < 1e-6 then
 		return nil
 	end
+
 	local t = (planePos - rayOrigin):Dot(planeNormal) / denom
 	return rayOrigin + rayDir * t
 end
 
-local function getInset(frame)
-	local screenGui = frame:FindFirstAncestorOfClass("ScreenGui")
-	if screenGui and screenGui.IgnoreGuiInset then
+local function getGuiInset(frame)
+	local gui = frame:FindFirstAncestorOfClass("ScreenGui")
+	if gui and gui.IgnoreGuiInset then
 		return Vector2.zero
 	end
 	return GuiService:GetGuiInset()
 end
 
-local function updateObject(obj)
+local function updateBlur(obj)
 	local frame = obj.Frame
 	local part = obj.Part
 	local mesh = obj.Mesh
@@ -50,11 +52,11 @@ local function updateObject(obj)
 		return
 	end
 
-	part.Transparency = 1 - 1e-7
+	part.Transparency = PART_TRANSPARENCY
 
-	local inset = getInset(frame)
-	local absPos = frame.AbsolutePosition + inset + BLUR_MARGIN
-	local absSize = frame.AbsoluteSize - BLUR_MARGIN * 2
+	local inset = getGuiInset(frame)
+	local absPos = frame.AbsolutePosition + inset + BLUR_PADDING
+	local absSize = frame.AbsoluteSize - BLUR_PADDING * 2
 
 	local p0 = absPos
 	local p1 = absPos + absSize
@@ -62,12 +64,12 @@ local function updateObject(obj)
 	local ray0 = Camera:ViewportPointToRay(p0.X, p0.Y)
 	local ray1 = Camera:ViewportPointToRay(p1.X, p1.Y)
 
-	local planeDist = 0.05 - Camera.NearPlaneZ
+	local planeDist = PLANE_OFFSET - Camera.NearPlaneZ
 	local planePos = Camera.CFrame.Position + Camera.CFrame.LookVector * planeDist
 	local planeNormal = Camera.CFrame.LookVector
 
-	local w0 = intersectPlane(ray0.Origin, ray0.Direction, planePos, planeNormal)
-	local w1 = intersectPlane(ray1.Origin, ray1.Direction, planePos, planeNormal)
+	local w0 = rayPlaneIntersect(planePos, planeNormal, ray0.Origin, ray0.Direction)
+	local w1 = rayPlaneIntersect(planePos, planeNormal, ray1.Origin, ray1.Direction)
 
 	if not w0 or not w1 then
 		part.Transparency = 1
@@ -85,26 +87,26 @@ local function updateObject(obj)
 end
 
 RunService:BindToRenderStep(
-	"BlurredGuiUpdate",
+	"BlurGuiUpdate",
 	Enum.RenderPriority.Camera.Value + 1,
 	function()
 		if #Objects == 0 then return end
 
-		DoF.NearIntensity = START_INTENSITY
-		DoF.FocusDistance = 0.25 - Camera.NearPlaneZ
+		local planeDist = PLANE_OFFSET - Camera.NearPlaneZ
+		DoF.FocusDistance = planeDist
 
 		for i = 1, #Objects do
-			updateObject(Objects[i])
+			updateBlur(Objects[i])
 		end
 
-		local cf = Camera.CFrame
+		local camCF = Camera.CFrame
 		for i = 1, #Parts do
-			Parts[i].CFrame = cf
+			Parts[i].CFrame = camCF
 		end
 	end
 )
 
-function Library.new(frame: Frame)
+function Library.new(frame: GuiObject)
 	assert(frame and frame:IsA("GuiObject"), "Expected GuiObject")
 
 	local part = Instance.new("Part")
