@@ -23,7 +23,9 @@ getgenv().fireclickdetector = function(CD)
 	local Old = Part.CFrame
 	local OldDistance = CD.MaxActivationDistance
 	local OldT = Part.Transparency
+	local OldTouch = Part.CanTouch
 	Part.Transparency = 1
+	Part.CanTouch = true
 	Part.CFrame = Camera.CFrame * CFrame.new(0, 0, -1)
 	CD.MaxActivationDistance = math.huge
 
@@ -40,6 +42,7 @@ getgenv().fireclickdetector = function(CD)
 
 		Part.Transparency = OldT
 		Part.CFrame = Old
+		Part.CanTouch = OldTouch
 		CD.MaxActivationDistance = OldDistance
 		for Inst, Enabled in Archive do
 			if Inst:IsA("Weld") then
@@ -90,4 +93,57 @@ getgenv().firetouchinterest = function(Transmitter)
 			end
 		end
 	end)
+end
+
+getgenv().fireproximityprompt = function(Proximity)
+	local Part = Proximity.Parent
+	if not Part or not Part:IsA("BasePart") then return end
+
+	local Archive = {}
+	for _, Inst in Part:GetDescendants() do
+		if Inst:IsA("Weld") then
+			Archive[Inst] = Inst.Enabled
+			Inst.Enabled = false
+		end
+		if Inst:IsA("BasePart") then
+			Archive[Inst] = Inst.CanCollide
+			Inst.CanCollide = false
+		end
+	end
+
+	local OldProps = {
+		CFrame = Part.CFrame,
+		Distance = Proximity.MaxActivationDistance,
+		Trans = Part.Transparency,
+		Enabled = Proximity.Enabled,
+		LOS = Proximity.RequiresLineOfSight,
+		Duration = Proximity.HoldDuration
+	}
+
+	Part.Transparency = 1
+	Part.CFrame = Camera.CFrame * CFrame.new(0, 0, -1)
+	Proximity.MaxActivationDistance = math.huge
+	Proximity.Enabled = true
+	Proximity.RequiresLineOfSight = false
+	Proximity.HoldDuration = 0
+
+	Proximity:InputHoldBegin()
+	task.wait()
+	Proximity:InputHoldEnd()
+	
+	Part.CFrame = OldProps.CFrame
+	Part.Transparency = OldProps.Trans
+	Proximity.MaxActivationDistance = OldProps.Distance
+	Proximity.Enabled = OldProps.Enabled
+	Proximity.RequiresLineOfSight = OldProps.LOS
+	Proximity.HoldDuration = OldProps.Duration
+
+	for Inst, Enabled in Archive do
+		if Inst:IsA("Weld") then
+			Inst.Enabled = false
+		end
+		if Inst:IsA("BasePart") then
+			Inst.CanCollide = false
+		end
+	end
 end
