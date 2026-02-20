@@ -127,9 +127,11 @@ getgenv().fireproximityprompt = function(Proximity)
 	Proximity.RequiresLineOfSight = false
 	Proximity.HoldDuration = 0
 
+	wait()
 	Proximity:InputHoldBegin()
-	task.wait()
+	wait()
 	Proximity:InputHoldEnd()
+	wait()
 	
 	Part.CFrame = OldProps.CFrame
 	Part.Transparency = OldProps.Trans
