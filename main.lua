@@ -127,7 +127,6 @@ getgenv().fireproximityprompt = function(Proximity)
 	Proximity.RequiresLineOfSight = false
 	Proximity.HoldDuration = 0
 
-	wait()
 	Proximity:InputHoldBegin()
 	task.wait()
 	Proximity:InputHoldEnd()
