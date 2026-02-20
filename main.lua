@@ -129,9 +129,8 @@ getgenv().fireproximityprompt = function(Proximity)
 
 	wait()
 	Proximity:InputHoldBegin()
-	wait()
+	task.wait()
 	Proximity:InputHoldEnd()
-	wait()
 	
 	Part.CFrame = OldProps.CFrame
 	Part.Transparency = OldProps.Trans
